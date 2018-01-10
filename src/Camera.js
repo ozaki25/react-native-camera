@@ -177,14 +177,23 @@ export default class Camera extends Component {
       this.props.captureAudio && captureMode === Camera.constants.CaptureMode.video;
 
     if (Platform.OS === 'ios') {
+      // 動画か写真かでチェックする権限を変えている
       let check = hasVideoAndAudio
         ? Camera.checkDeviceAuthorizationStatus
         : Camera.checkVideoAuthorizationStatus;
 
+      // 権限をチェックする関数が存在する(undefined)ではないとき
+      // = 初回チェックが完了しているということ？
       if (check) {
+        // check()の結果がアクセスを許可しているかどうか
         const isAuthorized = await check();
+        // 許可or未許可が取得できるということは、
+        // 初回チェックが完了しているということなのでisAuthorizationCheckedはtrue
         this.setState({ isAuthorized, isAuthorizationChecked: true });
-      }
+      } // else {
+      //  初回チェックが完了していない
+      //  => isAuthorizationCheckedはデフォルトのままfalse
+      // }
     } else if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
         title: this.props.permissionDialogTitle,
