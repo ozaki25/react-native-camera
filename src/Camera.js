@@ -182,18 +182,17 @@ export default class Camera extends Component {
         ? Camera.checkDeviceAuthorizationStatus
         : Camera.checkVideoAuthorizationStatus;
 
-      // 権限をチェックする関数が存在する(undefined)ではないとき
-      // = 初回チェックが完了しているということ？
+      // 許可or未許可を判定する関数が存在するかどうか
+      // 基本的にここがfalseになることはない
       if (check) {
         // check()の結果がアクセスを許可しているかどうか
+        // ①初回チェックが完了していないとここのawaitでずっと待たされることになるが、
+        //   待っている間にrenderメソッドが走り描画は行われる(pendingAuthorizationViewが表示されるのはこの時)
+        // ②check(つまりCamera.checkDeviceAuthorizationStatus)が実行された時に初回チェック未済なら初回チェックのポップアップが表示される
         const isAuthorized = await check();
-        // 許可or未許可が取得できるということは、
-        // 初回チェックが完了しているということなのでisAuthorizationCheckedはtrue
+        // 初回チェックが完了するとこれ以降の処理が動き、許可/未許可の選択に応じてstateが更新され再描画される
         this.setState({ isAuthorized, isAuthorizationChecked: true });
-      } // else {
-      //  初回チェックが完了していない
-      //  => isAuthorizationCheckedはデフォルトのままfalse
-      // }
+      }
     } else if (Platform.OS === 'android') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.CAMERA, {
         title: this.props.permissionDialogTitle,
